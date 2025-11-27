@@ -1,36 +1,100 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# University Bus System (نظام باصات الجامعة)
 
-## Getting Started
+**إعداد الطالب: قيس طلال الجازي**
 
-First, run the development server:
+## نظرة عامة
+هذا المشروع عبارة عن نظام متكامل لإدارة وتتبع باصات الجامعة، تم بناؤه باستخدام **Next.js** ليعمل كتطبيق Full-Stack (Frontend + Backend)، مع قاعدة بيانات **PostgreSQL** وإدارة البيانات عبر **Prisma ORM**.
 
+## المميزات
+- **للطلاب**:
+  - تسجيل الدخول برقم الطالب.
+  - تحديد مكان السكن ليتم ربط الطالب بالباص المناسب تلقائيًا.
+  - عرض معلومات الباص المخصص (رقم الباص، السائق، خط السير).
+  - تتبع موقع الباص الحالي على الخريطة (Real-time).
+- **للإدارة (Admin)**:
+  - لوحة تحكم لإضافة وإدارة الباصات.
+  - تحديث مواقع الباصات (محاكاة لنظام GPS).
+  - مشاهدة عدد الطلاب في كل باص.
+
+## التقنيات المستخدمة
+- **Framework**: Next.js 14 (App Router)
+- **Database**: PostgreSQL
+- **ORM**: Prisma
+- **Maps**: Leaflet (React-Leaflet)
+- **Styling**: CSS Modules / Global CSS (Premium Design)
+- **Deployment**: Vercel
+
+---
+
+## تعليمات التشغيل محليًا (Local Development)
+
+### 1. تثبيت المتطلبات
+تأكد من تثبيت Node.js. ثم قم بتشغيل الأمر التالي في مجلد المشروع:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. إعداد قاعدة البيانات
+قم بإنشاء ملف `.env` في جذر المشروع وأضف رابط قاعدة البيانات. يمكنك استخدام PostgreSQL محلي أو سحابي (مثل Supabase/Neon).
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:PORT/DATABASE?schema=public"
+JWT_SECRET="your-super-secret-key"
+```
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+ثم قم بتشغيل الأوامر التالية لإنشاء الجداول وملء البيانات التجريبية:
+```bash
+# إنشاء الجداول
+npx prisma migrate dev --name init
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# إضافة بيانات تجريبية (Seed)
+node prisma/seed.js
+```
 
-## Learn More
+### 3. تشغيل التطبيق
+```bash
+npm run dev
+```
+افتح المتصفح على الرابط: `http://localhost:3000`
 
-To learn more about Next.js, take a look at the following resources:
+**بيانات الدخول التجريبية:**
+- **طالب**:
+  - الرقم الجامعي: `20230001`
+  - كلمة المرور: `student123`
+- **أدمن**:
+  - اسم المستخدم: `admin`
+  - كلمة المرور: `admin123`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## تعليمات النشر على Vercel
 
-## Deploy on Vercel
+1. ارفع المشروع على حسابك في **GitHub**.
+2. اذهب إلى موقع [Vercel](https://vercel.com) وقم بتسجيل الدخول.
+3. اضغط على **"Add New Project"** واختر المستودع (Repository) الخاص بالمشروع.
+4. في صفحة الإعدادات (Configure Project):
+   - **Framework Preset**: اختر Next.js.
+   - **Environment Variables**: أضف المتغيرات التالية:
+     - `DATABASE_URL`: رابط قاعدة بيانات PostgreSQL (يمكنك الحصول عليه مجانًا من Supabase أو Neon).
+     - `JWT_SECRET`: مفتاح سري عشوائي لتشفير الجلسات.
+5. اضغط **Deploy**.
+6. بعد الانتهاء، سيتم تزويدك برابط للتطبيق يعمل مباشرة.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## المخطط المعماري (Architecture)
+
+- **Frontend**: واجهات React مبنية داخل Next.js App Router. تتواصل مع الـ API Routes لجلب البيانات.
+- **Backend**: API Routes موجودة في مجلد `app/api`. تقوم بمعالجة الطلبات والاتصال بقاعدة البيانات.
+- **Database**: PostgreSQL تحتوي على جداول (Students, Buses, BusLocations, Admins).
+- **Authentication**: نظام JWT مخزن في Cookies (HttpOnly) لضمان الأمان.
+
+## مخطط قاعدة البيانات (ERD)
+
+- **Students**: بيانات الطلاب، مرتبط بجدول Buses (Many-to-One).
+- **Buses**: بيانات الباصات.
+- **BusLocations**: سجلات مواقع الباصات، مرتبط بجدول Buses (One-to-Many).
+- **Admins**: حسابات المسؤولين.
+
+---
+
+**إعداد الطالب: قيس طلال الجازي**

@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Student {
+  id             Int      @id @default(autoincrement())
+  studentId      String   @unique @map("student_id")
+  name           String
+  email          String?
+  passwordHash   String   @map("password_hash")
+  housingArea    String   @map("housing_area")
+  housingDetails String?  @map("housing_details")
+  busId          Int?     @map("bus_id")
+  bus            Bus?     @relation(fields: [busId], references: [id])
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("students")
+}
+
+model Bus {
+  id               Int           @id @default(autoincrement())
+  busNumber        String        @unique @map("bus_number")
+  driverName       String?       @map("driver_name")
+  routeDescription String?       @map("route_description")
+  capacity         Int?
+  students         Student[]
+  locations        BusLocation[]
+  createdAt        DateTime      @default(now()) @map("created_at")
+
+  @@map("buses")
+}
+
+model BusLocation {
+  id        Int      @id @default(autoincrement())
+  busId     Int      @map("bus_id")
+  bus       Bus      @relation(fields: [busId], references: [id], onDelete: Cascade)
+  latitude  Float
+  longitude Float
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("bus_locations")
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("admin")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}

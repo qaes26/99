@@ -1,66 +1,126 @@
-import Image from "next/image";
-import styles from "./page.module.css";
+'use client';
 
-export default function Home() {
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+
+export default function LoginPage() {
+  const router = useRouter();
+  const [isStudent, setIsStudent] = useState(true);
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: isStudent ? 'student' : 'admin',
+          identifier,
+          password
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Login failed');
+      }
+
+      if (data.role === 'admin') {
+        router.push('/admin/dashboard');
+      } else {
+        router.push('/student/dashboard');
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.js file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '80vh' }}>
+      <div className="card" style={{ width: '100%', maxWidth: '400px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <h1 style={{ color: 'var(--primary)', marginBottom: '0.5rem' }}>نظام باصات الجامعة</h1>
+          <p style={{ color: 'var(--text-light)' }}>تسجيل الدخول</p>
         </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        <div style={{ display: 'flex', marginBottom: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
+          <button
+            onClick={() => setIsStudent(true)}
+            style={{
+              flex: 1,
+              padding: '1rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: isStudent ? '2px solid var(--primary)' : 'none',
+              color: isStudent ? 'var(--primary)' : 'var(--text-light)',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
           >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            طالب
+          </button>
+          <button
+            onClick={() => setIsStudent(false)}
+            style={{
+              flex: 1,
+              padding: '1rem',
+              background: 'none',
+              border: 'none',
+              borderBottom: !isStudent ? '2px solid var(--primary)' : 'none',
+              color: !isStudent ? 'var(--primary)' : 'var(--text-light)',
+              fontWeight: 'bold',
+              cursor: 'pointer'
+            }}
+          >
+            مسؤول (Admin)
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          {error && <div style={{ color: 'var(--danger)', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+
+          <div className="input-group">
+            <label>{isStudent ? 'الرقم الجامعي' : 'اسم المستخدم'}</label>
+            <input
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              required
             />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+          </div>
+
+          <div className="input-group">
+            <label>كلمة المرور</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={loading}>
+            {loading ? 'جاري الدخول...' : 'تسجيل الدخول'}
+          </button>
+        </form>
+
+        {isStudent && (
+          <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+            <p style={{ color: 'var(--text-light)' }}>ليس لديك حساب؟ <Link href="/register" style={{ color: 'var(--primary)', fontWeight: 'bold' }}>إنشاء حساب جديد</Link></p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
