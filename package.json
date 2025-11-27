@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && next build", // <== تم التعديل هنا
+    "build": "prisma generate && next build", // <== قم بحذف التعليق
     "start": "next start",
     "lint": "eslint"
   },
